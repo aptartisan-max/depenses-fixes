@@ -18,22 +18,35 @@
     <section class="card">
       <h2>Ajouter une dépense</h2>
       <form id="expense-form">
-        <label>
-          Date
-          <input type="date" id="date" required>
-        </label>
-        <label>
-          Montant (€)
-          <input type="number" id="amount" step="0.01" min="0" required>
-        </label>
+        <div class="form-grid">
+          <label>
+            Date
+            <input type="date" id="date" required>
+          </label>
+          <label>
+            Montant (€)
+            <input type="number" id="amount" step="0.01" min="0" required>
+          </label>
+        </div>
+
         <label>
           Catégorie
-          <input type="text" id="category" placeholder="Ex: Logement, Abonnement" required>
+          <select id="category" required>
+            <option value="">-- Choisir une catégorie --</option>
+            <option>Logement</option>
+            <option>Abonnements</option>
+            <option>Alimentation</option>
+            <option>Transport</option>
+            <option>Services</option>
+            <option>Autres</option>
+          </select>
         </label>
+
         <label>
           Note (optionnel)
           <input type="text" id="note" placeholder="Ex: Loyer août">
         </label>
+
         <div class="actions">
           <button type="submit">Ajouter</button>
           <button type="button" id="clear-all">Effacer tout</button>
@@ -42,7 +55,19 @@
     </section>
 
     <section class="card">
-      <h2>Dépenses</h2>
+      <div class="toolbar">
+        <h2>Dépenses</h2>
+        <div>
+          <input id="search" placeholder="Rechercher (catégorie, note, date)...">
+          <select id="sort">
+            <option value="date_desc">Date ↓</option>
+            <option value="date_asc">Date ↑</option>
+            <option value="amount_desc">Montant ↓</option>
+            <option value="amount_asc">Montant ↑</option>
+          </select>
+        </div>
+      </div>
+
       <ul id="expenses-list" class="expenses-list"></ul>
       <p id="empty" class="muted">Aucune dépense enregistrée.</p>
     </section>
