@@ -161,7 +161,7 @@ function exportCSV(){
   const rows = items.map(it => [
     it.date,
     it.amount,
-    `"${(it.category||'').replace(/"/g,'""')}",`,
+    `"${(it.category||'').replace(/"/g,'""')}"`,
     `"${(it.note||'').replace(/"/g,'""')}"`,
   ]);
   const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -187,7 +187,7 @@ if(!document.querySelector('.export-btn')){
 
 // register service worker
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/sw.js').then(r => console.log('SW enregistré', r)).catch(err => console.warn('SW erreur', err));
+  navigator.serviceWorker.register('sw.js').then(r => console.log('SW enregistré', r)).catch(err => console.warn('SW erreur', err));
 }
 
 render();
