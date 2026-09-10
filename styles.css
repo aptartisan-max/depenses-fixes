@@ -1,0 +1,40 @@
+/* styles.css — Mes dépenses PWA */
+:root{
+  --primary:#0d47a1;
+  --bg:#f6f8fb;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --gap:1rem;
+  font-size:16px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans",sans-serif;
+  background:linear-gradient(180deg,var(--bg),#eef2f7);
+  color:#0b1220;
+  -webkit-font-smoothing:antialiased;
+}
+header{background:var(--primary);color:#fff;padding:1.25rem 1rem}
+header h1{margin:0;font-size:1.25rem}
+header .tag{opacity:0.9;margin:0.25rem 0 0;font-size:0.9rem}
+main{max-width:900px;margin:1rem auto;padding:0 1rem}
+.card{background:var(--card);border-radius:10px;padding:1rem;margin-bottom:var(--gap);box-shadow:0 1px 3px rgba(11,18,32,0.06)}
+label{display:block;margin-bottom:0.5rem;font-size:0.9rem}
+input[type="text"],input[type="date"],input[type="number"]{width:100%;padding:0.5rem;border:1px solid #e6eef8;border-radius:6px;margin-top:0.25rem}
+.actions{display:flex;gap:0.5rem;margin-top:0.5rem}
+button{background:var(--primary);color:#fff;border:none;padding:0.6rem 0.9rem;border-radius:8px;cursor:pointer}
+button[aria-pressed="true"],button:active{transform:translateY(1px)}
+button#clear-all{background:#c62828}
+.expenses-list{list-style:none;padding:0;margin:0}
+.expenses-list li{display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px dashed #f0f3f7}
+.expenses-list .meta{display:flex;flex-direction:column}
+.expenses-list .amount{font-weight:600}
+.muted{color:var(--muted)}
+footer{max-width:900px;margin:0 auto 2rem;padding:0 1rem;color:var(--muted);font-size:0.9rem}
+@media(min-width:640px){
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:0.5rem}
+.export-btn{background:#2e7d32}
