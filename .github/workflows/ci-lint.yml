@@ -19,4 +19,4 @@ jobs:
           npm ci || npm install
       - name: Run ESLint
         run: |
-          npx eslint app.js || true
+          npx eslint app.js
