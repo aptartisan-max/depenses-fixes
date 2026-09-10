@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0d47a1">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/styles.css">
+  <title>Mes dépenses — Dépenses fixes</title>
+</head>
+<body>
+  <header>
+    <h1>Mes dépenses</h1>
+    <p class="tag">Suivi simple des dépenses fixes mensuelles</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Ajouter une dépense</h2>
+      <form id="expense-form">
+        <label>
+          Date
+          <input type="date" id="date" required>
+        </label>
+        <label>
+          Montant (€)
+          <input type="number" id="amount" step="0.01" min="0" required>
+        </label>
+        <label>
+          Catégorie
+          <input type="text" id="category" placeholder="Ex: Logement, Abonnement" required>
+        </label>
+        <label>
+          Note (optionnel)
+          <input type="text" id="note" placeholder="Ex: Loyer août">
+        </label>
+        <div class="actions">
+          <button type="submit">Ajouter</button>
+          <button type="button" id="clear-all">Effacer tout</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Dépenses</h2>
+      <ul id="expenses-list" class="expenses-list"></ul>
+      <p id="empty" class="muted">Aucune dépense enregistrée.</p>
+    </section>
+
+    <section class="card">
+      <h2>Résumé</h2>
+      <p>Total: <strong id="total">0 €</strong></p>
+    </section>
+  </main>
+
+  <footer>
+    <small>Application PWA locale — données stockées dans localStorage.</small>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
