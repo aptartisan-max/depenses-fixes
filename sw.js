@@ -1,13 +1,13 @@
 // sw.js — Service worker (cache-first strategy for app shell)
 const CACHE_NAME = 'depenses-shell-v1'
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/app.js',
-  '/manifest.json',
-  '/gallery/icon-192.svg',
-  '/gallery/icon-512.svg'
+  './',
+  'index.html',
+  'styles.css',
+  'app.js',
+  'manifest.json',
+  'gallery/icon-192.svg',
+  'gallery/icon-512.svg'
 ]
 
 self.addEventListener('install', event => {
@@ -43,7 +43,7 @@ self.addEventListener('fetch', event => {
         return resp
       }).catch(() => {
         // Fallback to cache index.html for navigation requests
-        if (req.mode === 'navigate') return caches.match('/index.html')
+        if (req.mode === 'navigate') return caches.match('index.html')
         return new Response('Offline', {status: 503, statusText: 'Offline'})
       })
     })
