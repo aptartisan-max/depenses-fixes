@@ -81,6 +81,26 @@
     line-height: 1.5;
   }
 
+  /* Reste à payer / déjà payé */
+  .stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .stat {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 10px 16px;
+    min-width: 150px;
+  }
+  .stat .k { font-size: 12px; color: #a8c4bf; letter-spacing: 0.02em; }
+  .stat .v { font-family: 'Fraunces', serif; font-weight: 600; font-size: 24px; margin-top: 2px; }
+  .stat.todo { border-color: rgba(217,164,65,0.5); }
+  .stat.todo .v { color: var(--gold); }
+  .stat.done .v { color: #9fd49a; }
+
   /* Month switcher */
   .monthbar {
     display: flex;
@@ -472,6 +492,10 @@
     <h1>Mes dépenses fixes</h1>
     <div class="hero-amount" id="heroAmount">0&nbsp;<span>€</span></div>
     <p class="hero-sub" id="heroSub"></p>
+    <div class="stats">
+      <div class="stat todo"><div class="k">Reste à payer</div><div class="v" id="statTodo">0,00 €</div></div>
+      <div class="stat done"><div class="k">Déjà payé</div><div class="v" id="statDone">0,00 €</div></div>
+    </div>
     <button class="sync" id="syncBadge">☁︎ Google Sheets : non connecté</button>
   </header>
 
@@ -809,16 +833,19 @@ function render() {
 
   // Totaux (en tenant compte des montants modifiés et des dépenses ignorées ce mois-ci)
   const catTotals = {};
-  let total = 0;
+  let total = 0, paidTotal = 0;
   items.forEach(it => {
     const ov = md[it.id] || {};
     if (ov.skipped) return;
     const amt = (typeof ov.amount === 'number') ? ov.amount : it.amount;
     total += amt;
+    if (ov.paid) paidTotal += amt;
     catTotals[it.cat] = (catTotals[it.cat] || 0) + amt;
   });
 
   document.getElementById('heroAmount').innerHTML = `${fmt(total)}&nbsp;<span>€</span>`;
+  document.getElementById('statTodo').textContent = `${fmt(total - paidTotal)} €`;
+  document.getElementById('statDone').textContent = `${fmt(paidTotal)} €`;
 
   const paidCount = items.filter(it => (md[it.id] || {}).paid).length;
   const activeCount = items.filter(it => !(md[it.id] || {}).skipped).length;
@@ -924,19 +951,20 @@ function renderHistory() {
     const [ky, km] = key.split('-').map(Number);
     const y = ky, m = km - 1;
     const md = store.months[key] || {};
-    let total = 0, paid = 0, active = 0;
+    let total = 0, paid = 0, active = 0, remaining = 0;
     store.items.forEach(it => {
       const ov = md[it.id] || {};
       if (ov.skipped) return;
       active++;
-      total += (typeof ov.amount === 'number') ? ov.amount : it.amount;
-      if (ov.paid) paid++;
+      const amt = (typeof ov.amount === 'number') ? ov.amount : it.amount;
+      total += amt;
+      if (ov.paid) paid++; else remaining += amt;
     });
     const row = document.createElement('div');
     row.className = 'history-row';
     row.innerHTML = `
       <span class="hr-month">${monthFmt(y, m)}</span>
-      <span class="hr-meta">${fmt(total)} € &middot; ${paid}/${active} payés</span>
+      <span class="hr-meta">${fmt(total)} € &middot; ${paid}/${active} payés${remaining > 0.004 ? ` &middot; reste ${fmt(remaining)} €` : ''}</span>
     `;
     row.addEventListener('click', () => { viewYear = y; viewMonth = m; render(); document.getElementById('historyList').classList.remove('open'); document.getElementById('historyToggle').classList.remove('open'); window.scrollTo({ top: 0, behavior: 'smooth' }); });
     list.appendChild(row);
