@@ -1,26 +1,13 @@
-# Mes dépenses — Dépenses fixes
+# Dépenses fixes
 
-Application PWA minimale pour suivre des dépenses fixes mensuelles. Données stockées localement dans le navigateur (localStorage).
+Suivi mensuel des prélèvements automatiques (page unique `index.html`).
 
-## Fonctionnalités
-- Ajouter / supprimer des dépenses (date, montant, catégorie, note)
-- Affichage de la liste et total
-- Export CSV (bouton "Exporter CSV")
-- PWA : manifest + service worker (cache-first) pour fonctionnement hors-ligne
-- Icônes SVG (gallery/icon-192.svg, gallery/icon-512.svg)
+En ligne : https://aptartisan-max.github.io/depenses-fixes/
 
-## Installation locale (test)
-1. Cloner le dépôt :
-   git clone https://github.com/aptartisan-max/depenses-fixes.git
-2. Ouvrir un serveur local (le service worker nécessite HTTP) :
-   - Python 3 : python -m http.server 8000
-3. Ouvrir http://localhost:8000 dans le navigateur.
+## Synchronisation Google Sheets
+1. Créer un Google Sheets « Dépenses fixes ».
+2. Extensions → Apps Script : coller le contenu de `apps-script.gs`, enregistrer.
+3. Déployer → Nouveau déploiement → Application Web — Exécuter en tant que : Moi · Qui a accès : Tout le monde.
+4. Copier le lien `/exec`, puis dans l'appli : bouton « ☁︎ Google Sheets » → coller → Connecter (une fois par appareil).
 
-## Publication (optionnelle)
-- Activer GitHub Pages pour la branche main (root) dans les paramètres du dépôt.
-- Le site sera accessible après déploiement, p.ex. https://aptartisan-max.github.io/depenses-fixes
-
-## Notes
-- Les données sont stockées uniquement dans le navigateur sous la clé localStorage: `depenses:items:v1`.
-- Pour réinitialiser, utilisez le bouton « Effacer tout ».
-- L’export CSV télécharge `mes-depenses.csv` avec colonnes : date, amount_eur, category, note.
+Le lien `/exec` n'est jamais publié dans ce dépôt : il reste enregistré dans chaque navigateur.
