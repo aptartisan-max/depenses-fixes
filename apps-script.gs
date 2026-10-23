@@ -71,6 +71,8 @@ function writeReadable_(data) {
     const md = data.months[month] || {};
     if (Object.keys(md).length === 0) return;
     items.forEach(i => {
+      // dépense pas encore commencée ou déjà résiliée ce mois-là : on ne l'affiche pas
+      if ((i.startMonth && month < i.startMonth) || (i.endMonth && month > i.endMonth)) return;
       const ov = md[i.id] || {};
       rows.push([month, i.day, i.name, i.cat,
         typeof ov.amount === 'number' ? ov.amount : i.amount,
