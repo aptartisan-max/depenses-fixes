@@ -523,7 +523,7 @@
   <div class="history-list" id="historyList"></div>
 
   <footer>
-    Coche une dépense pour la marquer payée. Le crayon permet de modifier le montant juste pour ce mois (utile si un prélèvement varie), l'œil barré permet de l'ignorer ce mois-ci sans la supprimer de la liste. Une fois connectée à Google Sheets, l'appli enregistre tout dans ton tableau et se met à jour sur tous tes appareils.
+    Coche une dépense pour la marquer payée. Le crayon permet de modifier le montant juste pour ce mois (utile si un prélèvement varie), l'œil barré permet de l'ignorer ce mois-ci sans la supprimer de la liste. Pour un abonnement arrêté, ouvre la roue ⚙ et choisis « Résilier » : il disparaît des mois suivants mais reste dans les mois déjà payés. Une fois connectée à Google Sheets, l'appli enregistre tout dans ton tableau et se met à jour sur tous tes appareils.
     <div class="tools">
       <button class="add-btn ghost" id="backupBtn">⬇ Sauvegarder</button>
       <button class="add-btn ghost" id="restoreBtn">⬆ Restaurer</button>
@@ -560,12 +560,19 @@
         <label for="f-newcat">Nouvelle catégorie</label>
         <input type="text" id="f-newcat" placeholder="Ex. Loisirs">
       </div>
+      <div class="field" id="f-end-wrap" style="display:none;">
+        <label for="f-end">Dernier mois prélevé (résiliation)</label>
+        <select id="f-end"></select>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" id="cancelItem">Annuler</button>
         <button type="submit" class="btn btn-primary">Enregistrer</button>
       </div>
+      <div class="delete-row" id="cancelSubRow" style="display:none;">
+        <button type="button" class="btn btn-secondary" id="cancelSub" style="width:100%; margin-top:10px;"></button>
+      </div>
       <div class="delete-row" id="deleteRow" style="display:none;">
-        <button type="button" class="delete-link" id="deleteItem">Supprimer cette dépense</button>
+        <button type="button" class="delete-link" id="deleteItem">Supprimer complètement (y compris l'historique)</button>
       </div>
     </form>
   </div>
@@ -818,6 +825,20 @@ function monthData(y, m) {
   return store.months[key];
 }
 
+/* Une dépense est active un mois donné si elle a commencé (startMonth) et n'est pas encore résiliée (endMonth = dernier mois prélevé). */
+function isActiveIn(it, key) {
+  return (!it.startMonth || key >= it.startMonth) && (!it.endMonth || key <= it.endMonth);
+}
+function shiftKey(key, delta) {
+  const [y, m] = key.split('-').map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return monthKey(d.getFullYear(), d.getMonth());
+}
+function keyLabel(key) {
+  const [y, m] = key.split('-').map(Number);
+  return monthFmt(y, m - 1);
+}
+
 function overrideFor(y, m, itemId) {
   return monthData(y, m)[itemId] || {};
 }
@@ -829,7 +850,8 @@ const monthFmt = (y, m) => new Date(y, m, 1).toLocaleDateString('fr-FR', { month
 function render() {
   const y = viewYear, m = viewMonth;
   const md = monthData(y, m);
-  const items = [...store.items].sort((a, b) => a.day - b.day);
+  const viewKey = monthKey(y, m);
+  const items = store.items.filter(it => isActiveIn(it, viewKey)).sort((a, b) => a.day - b.day);
 
   // Totaux (en tenant compte des montants modifiés et des dépenses ignorées ce mois-ci)
   const catTotals = {};
@@ -910,7 +932,7 @@ function render() {
       <div class="daybadge" style="background:${colorForCat(it.cat)}">${it.day}</div>
       <div class="item-body">
         <p class="item-name">${escapeHtml(it.name)}</p>
-        <p class="item-cat">${escapeHtml(it.cat)}${typeof ov.amount === 'number' ? ' &middot; <span class="overridden">montant modifié</span>' : ''}</p>
+        <p class="item-cat">${escapeHtml(it.cat)}${typeof ov.amount === 'number' ? ' &middot; <span class="overridden">montant modifié</span>' : ''}${it.endMonth === viewKey ? ' &middot; <span class="overridden">résilié — dernier prélèvement</span>' : ''}</p>
       </div>
       <div class="item-amount">${fmt(amt)}&nbsp;€</div>
       <div class="item-actions">
@@ -952,7 +974,7 @@ function renderHistory() {
     const y = ky, m = km - 1;
     const md = store.months[key] || {};
     let total = 0, paid = 0, active = 0, remaining = 0;
-    store.items.forEach(it => {
+    store.items.filter(it => isActiveIn(it, key)).forEach(it => {
       const ov = md[it.id] || {};
       if (ov.skipped) return;
       active++;
@@ -1046,9 +1068,54 @@ function openItemModal(id) {
   document.getElementById('f-newcat-wrap').style.display = 'none';
   document.getElementById('f-newcat').value = '';
   document.getElementById('deleteRow').style.display = it ? 'block' : 'none';
+  fillEndSelect(it ? it.endMonth : '');
+  document.getElementById('f-end-wrap').style.display = it ? 'block' : 'none';
+  updateCancelSubButton(it);
   itemOverlay.classList.add('open');
   document.getElementById('f-name').focus();
 }
+
+/* Liste des mois possibles pour « dernier mois prélevé » : 24 mois en arrière, 12 en avant */
+function fillEndSelect(selected) {
+  const sel = document.getElementById('f-end');
+  sel.innerHTML = '<option value="">— Toujours actif —</option>';
+  const base = monthKey(now.getFullYear(), now.getMonth());
+  const keys = new Set();
+  for (let i = -24; i <= 12; i++) keys.add(shiftKey(base, i));
+  if (selected) keys.add(selected);
+  [...keys].sort().reverse().forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k; opt.textContent = keyLabel(k);
+    if (k === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function updateCancelSubButton(it) {
+  const row = document.getElementById('cancelSubRow');
+  const btn = document.getElementById('cancelSub');
+  if (!it) { row.style.display = 'none'; return; }
+  row.style.display = 'block';
+  btn.textContent = it.endMonth
+    ? `Réactiver l'abonnement (résilié après ${keyLabel(it.endMonth)})`
+    : `Résilier à partir de ${monthFmt(viewYear, viewMonth)}`;
+}
+
+document.getElementById('cancelSub').addEventListener('click', () => {
+  if (!editingId) return;
+  const it = store.items.find(i => i.id === editingId);
+  if (!it) return;
+  if (it.endMonth) {
+    delete it.endMonth;
+  } else {
+    const lastPaid = shiftKey(monthKey(viewYear, viewMonth), -1);
+    if (!confirm(`Résilier « ${it.name} » ?\n\nElle n'apparaîtra plus à partir de ${monthFmt(viewYear, viewMonth)}. Les mois jusqu'à ${keyLabel(lastPaid)} inclus sont conservés tels quels.`)) return;
+    it.endMonth = lastPaid;
+  }
+  saveStore();
+  closeItemModal();
+  render();
+});
 function closeItemModal() { itemOverlay.classList.remove('open'); editingId = null; }
 
 document.getElementById('openAdd').addEventListener('click', () => openItemModal(null));
@@ -1071,9 +1138,12 @@ itemForm.addEventListener('submit', (e) => {
   if (editingId) {
     const it = store.items.find(i => i.id === editingId);
     Object.assign(it, { name, amount, day, cat });
+    const end = document.getElementById('f-end').value;
+    if (end) it.endMonth = end; else delete it.endMonth;
   } else {
     const id = 'item-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    store.items.push({ id, name, amount, day, cat });
+    // Une nouvelle dépense commence au mois affiché : elle n'apparaît pas dans les mois d'avant
+    store.items.push({ id, name, amount, day, cat, startMonth: monthKey(viewYear, viewMonth) });
   }
   saveStore();
   closeItemModal();
@@ -1082,7 +1152,7 @@ itemForm.addEventListener('submit', (e) => {
 
 document.getElementById('deleteItem').addEventListener('click', () => {
   if (!editingId) return;
-  if (!confirm('Supprimer cette dépense de la liste ? Son historique dans les mois passés sera aussi supprimé.')) return;
+  if (!confirm("Supprimer complètement cette dépense, y compris dans les mois déjà payés ?\n\nSi tu as simplement arrêté cet abonnement, utilise plutôt « Résilier » : l'historique est conservé.")) return;
   store.items = store.items.filter(i => i.id !== editingId);
   Object.values(store.months).forEach(md => { delete md[editingId]; });
   saveStore();
